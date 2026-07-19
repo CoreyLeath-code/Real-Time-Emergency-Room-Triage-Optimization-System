@@ -1,0 +1,73 @@
+name: MediTriage Research Benchmarks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: meditriage-benchmark-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  benchmark:
+    name: Synthetic Triage Research Benchmark
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Train deterministic model artifact
+        run: python train_model.py
+      - name: Run benchmark
+        run: |
+          python benchmarks/run_benchmark.py \
+            --iterations 5000 \
+            --warmup 200 \
+            --output benchmark-results.json
+      - name: Validate evidence contract
+        run: |
+          python - <<'PY'
+          import json
+          r = json.load(open("benchmark-results.json"))
+          required = {"artifact_load_ms", "single_record_latency_us", "batch_scaling", "memory", "heldout_quality"}
+          missing = required - r.keys()
+          if missing:
+              raise SystemExit(f"missing benchmark fields: {sorted(missing)}")
+          if r["single_record_latency_us"]["p99"] <= 0:
+              raise SystemExit("invalid latency result")
+          if r["heldout_quality"]["recall_macro"] < 0.50:
+              raise SystemExit("macro recall safety regression below 0.50")
+          PY
+      - name: Publish benchmark summary
+        run: |
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          r = json.load(open("benchmark-results.json"))
+          q, latency = r["heldout_quality"], r["single_record_latency_us"]
+          print("## MediTriage synthetic-data benchmark")
+          print("| Metric | Value |")
+          print("|---|---:|")
+          print(f"| Artifact load | {r['artifact_load_ms']:.3f} ms |")
+          print(f"| Median / P95 / P99 | {latency['median']:.3f} / {latency['p95']:.3f} / {latency['p99']:.3f} µs |")
+          print(f"| Single-record throughput | {r['single_record_throughput_s']:.2f} predictions/s |")
+          print(f"| Balanced accuracy | {q['balanced_accuracy']:.3f} |")
+          print(f"| Macro F1 / recall | {q['f1_macro']:.3f} / {q['recall_macro']:.3f} |")
+          print("")
+          print("Synthetic research data only; not clinically validated.")
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: meditriage-benchmark-${{ github.sha }}
+          path: benchmark-results.json
+          if-no-files-found: error
+          retention-days: 30
