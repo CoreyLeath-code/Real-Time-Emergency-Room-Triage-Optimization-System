@@ -12,6 +12,7 @@ from triage.modeling import (
     evaluate,
     load_dataset,
     split_dataset,
+    train_holdout,
 )
 
 DATA_PATH = "database/patient_records_sample.csv"
