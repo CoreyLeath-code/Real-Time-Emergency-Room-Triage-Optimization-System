@@ -1,40 +1,32 @@
-"""
-train_model.py
+"""Train the deterministic MediTriage pipeline and persist held-out metrics."""
+from __future__ import annotations
 
-Trains a machine learning classifier to predict ER triage priority based on patient data.
-Uses scikit-learn with a RandomForestClassifier. Outputs the model and training metrics.
-"""
+import json
+from pathlib import Path
 
-import os
-import pandas as pd
-import numpy as np
 import joblib
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import classification_report
 
-# Ensure output directory exists
-os.makedirs("ml_model", exist_ok=True)
+from triage.modeling import evaluate, train_holdout
 
-# Load and preprocess data
-data = pd.read_csv("database/patient_records_sample.csv")
+DATA_PATH = Path("database/patient_records_sample.csv")
+MODEL_PATH = Path("ml_model/triage_model.pkl")
+METRICS_PATH = Path("metrics/latest_model_metrics.json")
 
-# Basic preprocessing (assumes columns like 'age', 'bp', 'hr', 'symptom_code', 'priority_level')
-X = data.drop(columns=['priority_level'])  # Features
-y = data['priority_level']  # Target (triage category: 1-Immediate, 2-Urgent, 3-Low)
 
-# Train/test split
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+def main() -> int:
+    model, x_test, y_test = train_holdout(DATA_PATH)
+    metrics = evaluate(model, x_test, y_test)
 
-# Initialize and train classifier
-model = RandomForestClassifier(n_estimators=100, random_state=42)
-model.fit(X_train, y_train)
+    MODEL_PATH.parent.mkdir(parents=True, exist_ok=True)
+    METRICS_PATH.parent.mkdir(parents=True, exist_ok=True)
+    joblib.dump(model, MODEL_PATH)
+    METRICS_PATH.write_text(json.dumps(metrics, indent=2) + "\n", encoding="utf-8")
 
-# Evaluate model
-y_pred = model.predict(X_test)
-print("Classification Report:")
-print(classification_report(y_test, y_pred))
+    print(json.dumps(metrics, indent=2))
+    print(f"Model saved to {MODEL_PATH}")
+    print(f"Held-out metrics saved to {METRICS_PATH}")
+    return 0
 
-# Save the model
-joblib.dump(model, "ml_model/triage_model.pkl")
-print("Model saved to ml_model/triage_model.pkl")
+
+if __name__ == "__main__":
+    raise SystemExit(main())

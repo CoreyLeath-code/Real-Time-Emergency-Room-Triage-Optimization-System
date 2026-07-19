@@ -1,58 +1,51 @@
-# 🧠 Model Card: MediTriageAI
+# Model Card: MediTriage AI
 
-## Overview
-MediTriageAI is a machine learning–powered system that assists hospitals in triaging emergency room patients efficiently and fairly. It predicts the urgency level of a patient using medical data like vitals and symptoms, helping hospitals reduce wait times and prioritize care.
+## Safety and intended use
 
----
+MediTriage AI is an educational and research demonstration trained exclusively on synthetic data. It may be used to study reproducible tabular ML, testing, and deployment patterns. **It is not clinically validated, is not a medical device, and must not direct patient care or replace clinician judgment.**
 
-## Model Details
-- **Type**: Random Forest Classifier
-- **Training Framework**: scikit-learn
-- **Data Source**: Synthetic dataset mimicking ER vitals and records
-- **Input Features**:
-  - Age
-  - Blood Pressure
-  - Heart Rate
-  - Temperature
-  - Symptom Severity Score
-- **Output**: Triage Priority (0 = Low, 1 = Urgent, 2 = Immediate)
+## Model details
 
----
+- Model: 200-tree random forest in a preprocessing pipeline
+- Class weighting: `balanced_subsample`
+- Seed: `42`
+- Inputs: age, systolic blood pressure, heart rate, temperature, symptom score
+- Outputs: 0 low, 1 urgent, 2 immediate
+- Data: repository synthetic patient dataset
+- Evaluation: deterministic stratified 80/20 split
 
-## Intended Use
-- Assisting ER staff in early patient prioritization
-- Educational tool for triage model design
-- Research on ML applications in healthcare queue management
+## Measured held-out evidence
 
----
+| Metric | Value |
+|---|---:|
+| Samples | 120 |
+| Accuracy | 0.9833 |
+| Balanced accuracy | 0.9654 |
+| Macro precision | 0.9804 |
+| Macro recall | 0.9654 |
+| Macro F1 | 0.9718 |
+| Weighted OVR ROC-AUC | 0.9997 |
+| Low recall | 0.9091 |
+| Urgent recall | 1.0000 |
+| Immediate recall | 0.9870 |
 
-## Performance Metrics
-- Accuracy: ~87%
-- Precision (Immediate): 91%
-- Recall (Urgent): 85%
-- F1-Score (All Classes): ~0.86
+Confusion matrix (rows actual, columns predicted; low, urgent, immediate): `[[10,1,0],[0,32,0],[0,1,76]]`.
 
----
+Evidence was generated on 2026-07-19. See [the benchmark report](benchmarks/benchmark_report.md) and [raw JSON](benchmarks/latest.json).
 
-## Ethical Considerations
-- Model is for **supporting** decisions, not replacing medical staff
-- Must be trained on real-world data before live deployment
-- Regular auditing needed to detect bias against age or symptoms
+## Limitations and risks
 
----
+- Synthetic results do not estimate clinical performance.
+- Features omit history, comorbidities, medications, allergies, clinician assessment, and contextual factors.
+- No prospective, external, subgroup fairness, calibration, or human-factors validation exists.
+- The dataset is imbalanced; aggregate accuracy alone is insufficient.
+- No uncertainty/abstention policy, safety fallback, or regulated quality-management process exists.
+- Distribution shift, missingness, sensor error, and adversarial input behavior are not clinically characterized.
 
-## Limitations
-- Trained on synthetic data, not production-ready
-- Does not account for comorbidities or drug allergies
-- No NLP symptom parsing (currently tabular inputs only)
+## Required work before any real-world consideration
 
----
-
-## License
-[MIT License](LICENSE)
-
----
+Governed representative data, clinician-defined outcomes, external validation, fairness and calibration studies, hazard analysis, privacy/security controls, model governance, audit logging, human oversight, regulatory review, and prospective monitoring.
 
 ## Maintainer
-Corey Leath – Dual Bachelor's Student in AI + CS at UAT  
-GitHub: [@Trojan3877](https://github.com/Trojan3877)
+
+[CoreyLeath-code](https://github.com/CoreyLeath-code)

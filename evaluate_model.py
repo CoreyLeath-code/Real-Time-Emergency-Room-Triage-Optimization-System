@@ -1,64 +1,51 @@
-"""
-evaluate_model.py
+"""Evaluate the saved model on the deterministic stratified holdout."""
+from __future__ import annotations
 
-Evaluates the saved triage prediction model on a test dataset.
-Generates precision, recall, AUC, and confusion matrix.
-"""
+import json
+from pathlib import Path
 
-import os
-import pandas as pd
-import numpy as np
 import joblib
 import matplotlib.pyplot as plt
 import seaborn as sns
-from sklearn.metrics import (
-    accuracy_score,
-    precision_score,
-    recall_score,
-    f1_score,
-    roc_auc_score,
-    confusion_matrix
-)
-from sklearn.model_selection import train_test_split
 
-# Load data and model
-data = pd.read_csv("database/patient_records_sample.csv")
-model = joblib.load("ml_model/triage_model.pkl")
+from triage.modeling import CLASS_NAMES, evaluate, load_dataset, split_dataset
 
-# Features/target split
-X = data.drop(columns=['priority_level'])
-y = data['priority_level']
+DATA_PATH = Path("database/patient_records_sample.csv")
+MODEL_PATH = Path("ml_model/triage_model.pkl")
+METRICS_PATH = Path("metrics/latest_model_metrics.json")
+MATRIX_PATH = Path("metrics/confusion_matrix.png")
 
-# Train/test split
-_, X_test, _, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# Predictions
-y_pred = model.predict(X_test)
+def main() -> int:
+    features, target = load_dataset(DATA_PATH)
+    _, x_test, _, y_test = split_dataset(features, target)
+    model = joblib.load(MODEL_PATH)
+    metrics = evaluate(model, x_test, y_test)
 
-# Metrics
-acc = accuracy_score(y_test, y_pred)
-prec = precision_score(y_test, y_pred, average='weighted')
-rec = recall_score(y_test, y_pred, average='weighted')
-f1 = f1_score(y_test, y_pred, average='weighted')
+    METRICS_PATH.parent.mkdir(parents=True, exist_ok=True)
+    METRICS_PATH.write_text(json.dumps(metrics, indent=2) + "\n", encoding="utf-8")
 
-print(f"Accuracy: {acc:.4f}")
-print(f"Precision: {prec:.4f}")
-print(f"Recall: {rec:.4f}")
-print(f"F1 Score: {f1:.4f}")
+    labels = [CLASS_NAMES[index] for index in sorted(CLASS_NAMES)]
+    plt.figure(figsize=(6, 5))
+    sns.heatmap(
+        metrics["confusion_matrix"],
+        annot=True,
+        fmt="d",
+        cmap="Blues",
+        xticklabels=labels,
+        yticklabels=labels,
+    )
+    plt.title("Held-out confusion matrix")
+    plt.xlabel("Predicted")
+    plt.ylabel("Actual")
+    plt.tight_layout()
+    plt.savefig(MATRIX_PATH)
+    plt.close()
 
-# Ensure output directory exists
-os.makedirs("metrics", exist_ok=True)
+    print(json.dumps(metrics, indent=2))
+    print(f"Confusion matrix saved to {MATRIX_PATH}")
+    return 0
 
-# Confusion matrix
-cm = confusion_matrix(y_test, y_pred)
-labels = sorted(y_test.unique())
-plt.figure(figsize=(6, 5))
-sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=labels, yticklabels=labels)
-plt.title("Confusion Matrix")
-plt.xlabel("Predicted")
-plt.ylabel("Actual")
-plt.tight_layout()
-plt.savefig("metrics/confusion_matrix.png")
-plt.close()
 
-print("Confusion matrix saved to metrics/confusion_matrix.png")
+if __name__ == "__main__":
+    raise SystemExit(main())

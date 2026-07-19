@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "benchmark": "meditriage-random-forest-artifact",
+  "generated_at": "2026-07-19T15:03:50.866143+00:00",
+  "seed": 20260719,
+  "environment": {
+    "python": "3.10.20",
+    "platform": "Linux-6.17.0-1020-azure-x86_64-with-glibc2.39",
+    "cpu_count": 4,
+    "device": "cpu"
+  },
+  "protocol": {
+    "iterations": 5000,
+    "warmup": 200,
+    "dataset": "repository synthetic patient dataset",
+    "holdout": "deterministic stratified 20%"
+  },
+  "artifact_load_ms": 86.992631,
+  "single_record_latency_us": {
+    "mean": 14304.2248268,
+    "median": 14226.0095,
+    "p95": 14664.9236,
+    "p99": 15176.4088,
+    "min": 13975.181,
+    "max": 43037.424
+  },
+  "single_record_throughput_s": 69.89318451162856,
+  "batch_scaling": {
+    "1": {
+      "duration_ms": 14.296812,
+      "samples_s": 69.94566341083592
+    },
+    "10": {
+      "duration_ms": 14.111387,
+      "samples_s": 708.6475624260039
+    },
+    "100": {
+      "duration_ms": 15.616839,
+      "samples_s": 6403.34449244178
+    },
+    "1000": {
+      "duration_ms": 18.926638,
+      "samples_s": 52835.58548538837
+    },
+    "10000": {
+      "duration_ms": 40.245463,
+      "samples_s": 248475.21321844403
+    }
+  },
+  "memory": {
+    "peak_python_tracemalloc_mib": 2.611027717590332,
+    "process_max_rss_mib": 187.98828125
+  },
+  "heldout_quality": {
+    "samples": 120,
+    "accuracy": 0.9833333333333333,
+    "balanced_accuracy": 0.9653679653679653,
+    "precision_macro": 0.9803921568627452,
+    "recall_macro": 0.9653679653679653,
+    "f1_macro": 0.9718473247885013,
+    "f1_weighted": 0.9833602127719774,
+    "roc_auc_ovr_weighted": 0.9997115045806907,
+    "per_class_recall": {
+      "low": 0.9090909090909091,
+      "urgent": 1,
+      "immediate": 0.987012987012987
+    },
+    "confusion_matrix": [
+      [
+        10,
+        1,
+        0
+      ],
+      [
+        0,
+        32,
+        0
+      ],
+      [
+        0,
+        1,
+        76
+      ]
+    ]
+  },
+  "limitations": [
+    "All records are synthetic; metrics do not establish clinical validity.",
+    "Benchmark excludes Streamlit, Java integration, containers, network, and concurrent clients.",
+    "This software is research-only and must not direct patient care."
+  ]
+}
