@@ -76,3 +76,11 @@ def test_missing_columns_are_rejected(tmp_path):
     pd.DataFrame({"age": [30], "priority_level": [1]}).to_csv(invalid, index=False)
     with pytest.raises(ValueError, match="missing required columns"):
         load_dataset(invalid)
+
+
+def test_training_pipeline_is_reproducible():
+    first_model, first_test, first_target = train_holdout(DATA_PATH)
+    second_model, second_test, second_target = train_holdout(DATA_PATH)
+    pd.testing.assert_frame_equal(first_test, second_test)
+    pd.testing.assert_series_equal(first_target, second_target)
+    assert first_model.predict(first_test).tolist() == second_model.predict(second_test).tolist()
