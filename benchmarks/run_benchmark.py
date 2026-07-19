@@ -20,6 +20,10 @@ from pathlib import Path
 import joblib
 import pandas as pd
 
+REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
 from triage.modeling import evaluate, load_dataset, split_dataset
 
 SEED = 20260719
