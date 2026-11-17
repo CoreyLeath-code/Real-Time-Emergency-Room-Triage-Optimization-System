@@ -47,7 +47,7 @@ jobs:
         run: python evaluate_model.py
       - name: Upload test and model evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: meditriage-quality-evidence
           path: |
