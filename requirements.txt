@@ -1,10 +1,12 @@
-pandas==2.2.1
+# Python 3.10-compatible pins for the reproducible synthetic research demo.
+# Streamlit 1.64+ requires Python 3.11; remain on the Python 3.10-compatible line.
+pandas==2.3.3
 numpy==1.26.4
 scikit-learn==1.4.2
-joblib==1.4.0
+joblib==1.6.0
 matplotlib==3.8.4
 seaborn==0.13.2
-streamlit==1.35.0
-python-dotenv==1.0.1
+streamlit==1.63.0
+python-dotenv==1.2.4
 json-log-formatter==1.0
-pytest==8.2.0
+pytest==8.4.2
