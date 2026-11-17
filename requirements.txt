@@ -1,6 +1,6 @@
 # Python 3.11-compatible pins for the reproducible synthetic research demo.
 # Upgrade the runtime and ML stack together; models are retrained in CI before validation.
-pandas==2.3.3
+pandas==3.1.1
 numpy==1.26.4
 scikit-learn==1.9.1
 joblib==1.6.0
